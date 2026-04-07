@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>宵宿 B1 Smartphone Beta</title>
+  <link rel="stylesheet" href="styles.css?v=b1">
+</head>
+<body class="play-body">
+  <div id="game-root">
+    <canvas id="game-canvas"></canvas>
+    <div class="crt"></div>
+
+    <div id="hud" class="hud">
+      <div class="hud-left">
+        <div class="badge" id="day-label">DAY 1</div>
+        <div class="badge secondary" id="phase-label">昼勤務</div>
+        <div class="badge secondary" id="area-label">帳場</div>
+      </div>
+      <div class="hud-right">
+        <div class="distance-pill" id="distance-label">帳場へ 約2m</div>
+        <button id="menu-btn" class="menu-btn">MENU</button>
+      </div>
+            <div class="prompt" id="prompt">E / ACT : 調べる</div>
+      <canvas id="minimap" width="270" height="150" aria-hidden="true"></canvas>
+    </div>
+
+    <div id="joystick-zone" class="joystick-zone">
+      <div id="joystick-base" class="joystick-base"><div id="joystick-knob" class="joystick-knob"></div></div>
+      <div class="move-label">MOVE</div>
+    </div>
+    <div id="look-zone" class="look-zone"><span>LOOK</span></div>
+    <button id="act-btn" class="act-btn">ACT</button>
+
+    <div id="dialogue" class="dialogue hidden">
+      <div class="portrait" id="portrait"></div>
+      <div class="dialogue-box">
+        <div class="dialogue-name" id="dialogue-name">女将</div>
+        <div class="dialogue-text" id="dialogue-text">……</div>
+        <div class="dialogue-continue">タップで続く</div>
+      </div>
+    </div>
+
+    <div id="menu" class="overlay hidden">
+      <div class="menu-card">
+        <h2>MENU</h2>
+        <button data-action="save">SAVE</button>
+        <button data-action="load">LOAD</button>
+        <button data-action="hud">HUD OFF / ON</button>
+        <button data-action="title">TITLE</button>
+        <button data-action="close">閉じる</button>
+      </div>
+    </div>
+
+    <div id="gameover" class="overlay hidden">
+      <div class="menu-card gameover-card">
+        <h2>GAME OVER</h2>
+        <p>誘導員に捕まった。</p>
+        <button data-go="retry">追跡直前からやり直す</button>
+        <button data-go="title">タイトルへ戻る</button>
+      </div>
+    </div>
+
+
+
+    <div id="slot-overlay" class="overlay hidden">
+      <div class="menu-card slot-card">
+        <h2 id="slot-title">SAVE</h2>
+        <p class="slot-note" id="slot-note">スロットを選んでください。</p>
+        <div id="slot-list" class="slot-list"></div>
+        <button data-slot-close="1">閉じる</button>
+      </div>
+    </div>
+
+
+
+    <div id="return-home" class="overlay hidden">
+      <div class="menu-card gameover-card">
+        <h2>本日の勤務終了</h2>
+        <p>深夜の見回りを終えた。いったん自宅へ戻って休む。</p>
+        <button data-return-home="1">帰宅する</button>
+      </div>
+    </div>
+    <div id="ending" class="overlay hidden">
+      <div class="menu-card ending-card">
+        <h2>第二夜・終了</h2>
+        <p>自宅から始まった二日間の勤務で、旅館の異変は日常にまで滲み出した。<br>続きは次章へ。</p>
+        <button data-end="title">タイトルへ戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="game.js?v=b1"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>宵宿 B1 Smartphone Beta</title>
+  <link rel="stylesheet" href="styles.css?v=b1">
+</head>
+<body class="title-body">
+  <div class="crt"></div>
+  <main class="title-shell">
+    <div class="title-card">
+      <p class="eyebrow">B / itch.io・スマホ向け公開テスト版</p>
+      <h1>宵宿</h1>
+      <p class="roman">YOIYADO</p>
+      <p class="lead">自宅から田舎町を抜けて老舗旅館へ向かう。<br>昼は配膳・補充・照合作業、夜は見回りと調査をこなすスマホ向け高密度ホラー体験版。</p>
+      <ul class="feature-list">
+        <li>第1幕完結 + 第2幕導入まで実装</li>
+        <li>DAY2に朝食配膳・落とし物回収・宿帳照合を追加</li>
+        <li>スマホ向けUIを整理し、目的表示を一本化</li>
+        <li>3スロット SAVE / LOAD</li>
+      </ul>
+      <div class="title-actions">
+        <a class="main-btn" href="play.html?new=1">はじめから</a>
+        <button class="sub-btn" id="open-title-load">LOAD</button>
+        <button class="sub-btn" id="wipe-save">全スロット削除</button>
+      </div>
+      <p class="hint">PC: WASD / マウスドラッグ / E / ESC<br>スマホ: 左スティック移動 / 右半分ドラッグ視点 / ACT</p>
+      <p class="version">B1 / Smartphone Horror Beta</p>
+    </div>
+  </main>
+
+  <div id="title-slot-overlay" class="overlay hidden title-slot-overlay">
+    <div class="menu-card slot-card">
+      <h2>LOAD</h2>
+      <p class="slot-note">読み込むセーブデータを選んでください。</p>
+      <div id="title-slot-list" class="slot-list"></div>
+      <button id="close-title-load">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const SAVE_PREFIX = 'yoiyado_b1_smartphone_slot_';
+      const overlay = document.getElementById('title-slot-overlay');
+      const list = document.getElementById('title-slot-list');
+      const openBtn = document.getElementById('open-title-load');
+      const closeBtn = document.getElementById('close-title-load');
+      const wipeBtn = document.getElementById('wipe-save');
+
+      function slotKey(n){ return SAVE_PREFIX + n; }
+      function escapeHtml(str){ return String(str).replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s])); }
+      function renderSlots(){
+        const labels = { start_note:'机へ', leave_home:'玄関へ', walk_to_ryokan:'旅館入口へ', talk_okami:'女将へ', get_tray:'厨房へ', deliver_201:'201号室へ', report_okami:'帳場へ戻る', stock_amenities:'戸棚へ', place_amenities:'備品箱へ', arrange_slippers:'下駄箱前へ', restock_towels:'浴場前へ', answer_phone:'浴場前へ', inspect_archive:'宿帳庫へ', escape_archive:'帳場へ逃げる', sleep_day1:'布団へ', leave_home_day2:'玄関へ', commute_day2:'旅館入口へ', talk_maid:'仲居へ', inspect_north:'北廊下へ', inspect_detached:'離れ通路へ', escape_detached:'帳場へ逃げる', finale:'女将へ' };
+        list.innerHTML = '';
+        for (let i=1;i<=3;i++){
+          const raw = localStorage.getItem(slotKey(i));
+          const wrap = document.createElement('div');
+          wrap.className = 'slot-row';
+          const btn = document.createElement('button');
+          btn.className = 'slot-btn';
+          if(raw){
+            try{
+              const data = JSON.parse(raw);
+              const area = data.areaLabel || data.area || '不明';
+              const objective = labels[data.step] || data.step || '進行中';
+              btn.innerHTML = '<strong>SLOT ' + i + '</strong><span>' + escapeHtml(area) + ' / ' + escapeHtml(objective) + '</span>';
+              btn.addEventListener('click', ()=>{ location.href = 'play.html?slot=' + i; });
+            }catch(e){
+              btn.innerHTML = '<strong>SLOT ' + i + '</strong><span>読込失敗</span>';
+              btn.disabled = true;
+            }
+          }else{
+            btn.innerHTML = '<strong>SLOT ' + i + '</strong><span>空き</span>';
+            btn.disabled = true;
+          }
+          wrap.appendChild(btn);
+          list.appendChild(wrap);
+        }
+      }
+      openBtn.addEventListener('click', function(){ renderSlots(); overlay.classList.remove('hidden'); });
+      closeBtn.addEventListener('click', function(){ overlay.classList.add('hidden'); });
+      overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.classList.add('hidden'); });
+      wipeBtn.addEventListener('click', function(){
+        for(let i=1;i<=3;i++) localStorage.removeItem(slotKey(i));
+        alert('3つのセーブスロットを削除しました');
+        renderSlots();
+      });
+    })();
+  </script>
+</body>
+</html>
