@@ -282,44 +282,82 @@ const faceTextures = {
   phone: makeFaceTexture('#0f1216', '#d7d7d7', '#0f1216', 'phone')
 };
 
+
+function shadeColor(hex, delta){
+  const n = parseInt(hex.replace('#',''), 16);
+  let r = (n >> 16) & 255;
+  let g = (n >> 8) & 255;
+  let b = n & 255;
+  r = Math.max(0, Math.min(255, r + delta));
+  g = Math.max(0, Math.min(255, g + delta));
+  b = Math.max(0, Math.min(255, b + delta));
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
 function makeFaceTexture(skin, eye, accent, type) {
   const c = document.createElement('canvas');
-  c.width = 256; c.height = 256;
+  c.width = 512; c.height = 512;
   const g = c.getContext('2d');
-  g.fillStyle = skin;
-  g.fillRect(0, 0, 256, 256);
+  const cx = 256, cy = 260;
+  const grad = g.createRadialGradient(cx, cy - 60, 50, cx, cy, 250);
+  grad.addColorStop(0, skin);
+  grad.addColorStop(1, shadeColor(skin, -18));
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 512, 512);
+  g.fillStyle = 'rgba(255,255,255,.10)';
+  g.beginPath(); g.ellipse(cx, cy - 90, 120, 96, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.08)';
+  g.beginPath(); g.ellipse(cx, cy + 38, 156, 190, 0, 0, Math.PI * 2); g.fill();
+
+  // eyes
+  g.fillStyle = '#ffffff';
+  g.beginPath(); g.ellipse(186, 222, 34, 18, -0.08, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(326, 222, 34, 18, 0.08, 0, Math.PI * 2); g.fill();
   g.fillStyle = eye;
-  if (type === 'guide') {
-    g.fillRect(84, 110, 20, 12);
-    g.fillRect(152, 110, 20, 12);
-    g.fillStyle = '#7a0e12';
-    g.fillRect(96, 156, 64, 8);
-  } else {
-    g.fillRect(86, 100, 18, 10);
-    g.fillRect(152, 100, 18, 10);
-    g.fillStyle = '#8b544d';
-    g.fillRect(106, 152, 44, 6);
-  }
+  g.beginPath(); g.arc(186, 224, 11, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(326, 224, 11, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.5)';
+  g.beginPath(); g.arc(182, 220, 3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.arc(322, 220, 3, 0, Math.PI * 2); g.fill();
+
+  // lids and brows
+  g.strokeStyle = shadeColor(accent, -18);
+  g.lineWidth = 12;
+  g.beginPath(); g.moveTo(150, 190); g.quadraticCurveTo(186, 166, 224, 184); g.stroke();
+  g.beginPath(); g.moveTo(288, 184); g.quadraticCurveTo(326, 166, 362, 190); g.stroke();
+  g.strokeStyle = 'rgba(0,0,0,.13)';
+  g.lineWidth = 8;
+  g.beginPath(); g.moveTo(158, 208); g.quadraticCurveTo(186, 198, 214, 208); g.stroke();
+  g.beginPath(); g.moveTo(298, 208); g.quadraticCurveTo(326, 198, 354, 208); g.stroke();
+
+  // nose
+  g.strokeStyle = 'rgba(90,55,45,.28)';
+  g.lineWidth = 7;
+  g.beginPath(); g.moveTo(256, 238); g.lineTo(246, 288); g.quadraticCurveTo(256, 300, 268, 288); g.stroke();
+  g.fillStyle = 'rgba(120,60,62,.80)';
+  g.beginPath(); g.moveTo(216, 340); g.quadraticCurveTo(256, 322, 296, 340); g.quadraticCurveTo(256, 355, 216, 340); g.fill();
+  g.fillStyle = 'rgba(190,90,90,.08)';
+  g.beginPath(); g.ellipse(166, 296, 36, 18, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(346, 296, 36, 18, 0, 0, Math.PI * 2); g.fill();
+
   g.fillStyle = accent;
-  if (type === 'okami') {
-    g.fillRect(44, 42, 168, 34);
-  } else if (type === 'maid') {
-    g.fillRect(36, 28, 184, 42);
-  } else if (type === 'guest') {
-    g.fillRect(28, 30, 200, 36);
-  } else if (type === 'guide') {
-    g.fillRect(54, 10, 148, 44);
-    g.fillStyle = '#ffffff';
-    g.fillRect(112, 58, 32, 22);
+  if (type === 'guide') {
+    g.fillStyle = '#f5f6f8';
+    g.fillRect(100, 16, 312, 70);
+    g.fillStyle = '#ba2020';
+    g.fillRect(204, 110, 104, 18);
   } else if (type === 'chef') {
-    g.fillRect(58, 18, 140, 30);
-    g.fillStyle = '#ffffff';
-    g.fillRect(74, 0, 108, 34);
+    g.fillStyle = '#f7f7f7';
+    g.fillRect(136, 10, 240, 70);
+  } else if (type === 'okami') {
+    g.beginPath(); g.moveTo(106, 110); g.quadraticCurveTo(256, 18, 406, 110); g.lineTo(406, 28); g.lineTo(106, 28); g.closePath(); g.fill();
+  } else if (type === 'maid') {
+    g.beginPath(); g.moveTo(96, 126); g.quadraticCurveTo(256, 34, 416, 126); g.lineTo(416, 34); g.lineTo(96, 34); g.closePath(); g.fill();
   } else if (type === 'villager') {
-    g.fillRect(30, 28, 196, 40);
-    g.fillStyle = '#d7c2a4';
-    g.fillRect(96, 176, 64, 12);
+    g.beginPath(); g.moveTo(82, 142); g.quadraticCurveTo(256, 56, 430, 142); g.lineTo(430, 44); g.lineTo(82, 44); g.closePath(); g.fill();
+  } else {
+    g.beginPath(); g.moveTo(90, 136); g.quadraticCurveTo(256, 48, 422, 136); g.lineTo(422, 38); g.lineTo(90, 38); g.closePath(); g.fill();
   }
+
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -466,7 +504,7 @@ function createFloor(width, depth, material, y){
 }
 function createCeiling(width, depth, color){
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, 0.16, depth), new THREE.MeshStandardMaterial({ color: color || 0xf3eee4, roughness: 1 }));
-  mesh.position.set(0, 3.24, 0);
+  mesh.position.set(0, 4.04, 0);
   mesh.receiveShadow = true;
   areaGroup.add(mesh);
   return mesh;
@@ -481,9 +519,9 @@ function wallSegment(x, z, w, h, d, mat){
 }
 function addLamp(x,z,intensity,color){
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color: color || 0xffdda6 }));
-  bulb.position.set(x, 2.65, z); areaGroup.add(bulb);
+  bulb.position.set(x, 3.35, z); areaGroup.add(bulb);
   const p = new THREE.PointLight(color || 0xffd69a, intensity || 0.9, 11, 2.1);
-  p.position.set(x, 2.5, z); p.castShadow = false; areaGroup.add(p);
+  p.position.set(x, 3.15, z); p.castShadow = false; areaGroup.add(p);
 }
 function doorModel(x,z,axis,label,color){
   const g = new THREE.Group();
@@ -566,72 +604,110 @@ function archiveShelves(){
   }
 }
 
+
 function makeCharacter(type, costume){
   const g = new THREE.Group();
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xf1d5c3, roughness: 0.82 });
-  const clothMat = new THREE.MeshStandardMaterial({ color: costume || 0x465d89, roughness: 0.92 });
-  const darkMat = new THREE.MeshStandardMaterial({ color: 0x171a22, roughness: 0.95 });
-  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x0d0f16, roughness: 0.82 });
-  const headMat = skinMat;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 28, 20), headMat);
-  head.position.y = 1.73; head.castShadow = true; g.add(head);
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.08,0.09,14), skinMat); neck.position.y = 1.51; neck.castShadow = true; g.add(neck);
-  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.22,0.42,8,16), clothMat); chest.position.y = 1.08; chest.scale.set(1.08,1.06,0.82); chest.castShadow = true; g.add(chest);
-  const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.23,0.25,0.26,16), clothMat); waist.position.y = 0.67; waist.scale.z = 0.82; waist.castShadow = true; g.add(waist);
-  const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.1,16,16), clothMat); shoulderL.position.set(-0.28,1.26,0); g.add(shoulderL);
-  const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.28; g.add(shoulderR);
-  const upperArmL = new THREE.Mesh(new THREE.CapsuleGeometry(0.055,0.24,6,10), clothMat); upperArmL.position.set(-0.38,1.06,0); upperArmL.rotation.z = 0.26; upperArmL.castShadow = true; g.add(upperArmL);
-  const upperArmR = upperArmL.clone(); upperArmR.position.x = 0.38; upperArmR.rotation.z = -0.26; g.add(upperArmR);
-  const foreArmL = new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.22,6,10), skinMat); foreArmL.position.set(-0.45,0.76,0.03); foreArmL.rotation.z = 0.18; foreArmL.castShadow = true; g.add(foreArmL);
-  const foreArmR = foreArmL.clone(); foreArmR.position.x = 0.45; foreArmR.rotation.z = -0.18; g.add(foreArmR);
-  const upperLegL = new THREE.Mesh(new THREE.CapsuleGeometry(0.07,0.34,6,10), darkMat); upperLegL.position.set(-0.13,0.26,0); upperLegL.castShadow = true; g.add(upperLegL);
-  const upperLegR = upperLegL.clone(); upperLegR.position.x = 0.13; g.add(upperLegR);
-  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.1,0.34), shoeMat); shoeL.position.set(-0.13,-0.24,0.06); shoeL.castShadow = true; g.add(shoeL);
-  const shoeR = shoeL.clone(); shoeR.position.x = 0.13; g.add(shoeR);
-  const earGeo = new THREE.SphereGeometry(0.04,10,10);
-  const earL = new THREE.Mesh(earGeo, skinMat); earL.position.set(-0.21,1.72,0.02); g.add(earL);
-  const earR = earL.clone(); earR.position.x = 0.21; g.add(earR);
-  const eyeMat = new THREE.MeshStandardMaterial({ color: type==='guide'?0x541010:0x101217, roughness: 0.4 });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.022,10,10), eyeMat); eyeL.position.set(-0.07,1.75,0.19); g.add(eyeL);
-  const eyeR = eyeL.clone(); eyeR.position.x = 0.07; g.add(eyeR);
-  const browMat = new THREE.MeshStandardMaterial({ color: 0x302319, roughness: 1 });
-  const browL = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.015,0.03), browMat); browL.position.set(-0.07,1.81,0.19); browL.rotation.z = -0.08; g.add(browL);
-  const browR = browL.clone(); browR.position.x = 0.07; browR.rotation.z = 0.08; g.add(browR);
-  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.025,0.08,8), skinMat); nose.position.set(0,1.69,0.215); nose.rotation.x = Math.PI/2; g.add(nose);
-  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.01,0.02), new THREE.MeshStandardMaterial({ color: 0x8f5c54, roughness: 1 })); mouth.position.set(0,1.61,0.2); g.add(mouth);
-  const hairColor = type==='okami'?0x25181a:type==='maid'?0x2b2521:type==='villager'?0x5c5538:type==='guide'?0xffffff:0x2f2f35;
-  const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.86 });
-  const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.225,24,18,0,Math.PI*2,0,Math.PI/2), hairMat); hairCap.position.set(0,1.82,0); hairCap.scale.y = 0.8; hairCap.castShadow = true; g.add(hairCap);
+  const skinTone = type==='guide' ? 0xd9dce3 : 0xe6c7b1;
+  const skinMat = new THREE.MeshStandardMaterial({ color: skinTone, roughness: 0.68, metalness: 0.02 });
+  const clothMat = new THREE.MeshStandardMaterial({ color: costume || 0x465d89, roughness: 0.85 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x181b22, roughness: 0.92 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.7 });
+  const hairColor = type==='okami'?0x231718:type==='maid'?0x2a221e:type==='villager'?0x4c4331:type==='guide'?0x1d1f24:type==='chef'?0xf5f5f1:0x2d2d31;
+  const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.74 });
+
+  const pelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.18,0.18,18), clothMat);
+  pelvis.position.y = 0.96; pelvis.scale.z = 0.82; pelvis.castShadow = true; g.add(pelvis);
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.17,0.44,8,16), clothMat);
+  torso.position.y = 1.31; torso.scale.set(1.05,1.08,0.82); torso.castShadow = true; g.add(torso);
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.40,0.32,0.22), clothMat);
+  chest.position.set(0,1.44,0.02); chest.castShadow = true; g.add(chest);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.065,0.11,14), skinMat); neck.position.y = 1.72; neck.castShadow = true; g.add(neck);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 28, 22), skinMat);
+  head.position.y = 1.94; head.scale.set(1.0, 1.08, 0.98); head.castShadow = true; g.add(head);
+  const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.10,0.15), skinMat);
+  jaw.position.set(0,1.80,0.03); jaw.castShadow = true; g.add(jaw);
+  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.048, 14, 14), skinMat); cheekL.position.set(-0.1,1.89,0.1); g.add(cheekL);
+  const cheekR = cheekL.clone(); cheekR.position.x = 0.1; g.add(cheekR);
+  const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.028,0.08,10), skinMat);
+  nose.rotation.x = Math.PI/2; nose.position.set(0,1.90,0.16); g.add(nose);
+  const lip = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.012,0.02), new THREE.MeshStandardMaterial({ color: 0x8c5f59, roughness: 1 }));
+  lip.position.set(0,1.81,0.15); g.add(lip);
+  const eyeGeo = new THREE.SphereGeometry(0.018, 12, 12);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: type==='guide'?0x420909:0x121317, roughness: 0.35 });
+  const eyeL = new THREE.Mesh(eyeGeo, eyeMat); eyeL.position.set(-0.055,1.93,0.14); g.add(eyeL);
+  const eyeR = eyeL.clone(); eyeR.position.x = 0.055; g.add(eyeR);
+  const browMat = new THREE.MeshStandardMaterial({ color: 0x2d241f, roughness: 1 });
+  const browL = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.012,0.02), browMat); browL.position.set(-0.055,1.985,0.14); browL.rotation.z = -0.08; g.add(browL);
+  const browR = browL.clone(); browR.position.x = 0.055; browR.rotation.z = 0.08; g.add(browR);
+  const earGeo = new THREE.SphereGeometry(0.03,10,10);
+  const earL = new THREE.Mesh(earGeo, skinMat); earL.position.set(-0.145,1.92,0.00); g.add(earL);
+  const earR = earL.clone(); earR.position.x = 0.145; g.add(earR);
+
+  const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.162, 24, 18, 0, Math.PI*2, 0, Math.PI/2), hairMat);
+  hairCap.position.set(0,2.01,0); hairCap.scale.y = 0.84; hairCap.castShadow = true; g.add(hairCap);
+  const fringe = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.08,0.05), hairMat);
+  fringe.position.set(0,1.995,0.12); g.add(fringe);
+
+  const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.075,16,16), clothMat); shoulderL.position.set(-0.22,1.48,0); g.add(shoulderL);
+  const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.22; g.add(shoulderR);
+  const upperArmGeo = new THREE.CapsuleGeometry(0.04,0.26,6,10);
+  const lowerArmGeo = new THREE.CapsuleGeometry(0.035,0.23,6,10);
+  const upperArmL = new THREE.Mesh(upperArmGeo, clothMat); upperArmL.position.set(-0.29,1.30,0.0); upperArmL.rotation.z = 0.18; upperArmL.castShadow = true; g.add(upperArmL);
+  const upperArmR = upperArmL.clone(); upperArmR.position.x = 0.29; upperArmR.rotation.z = -0.18; g.add(upperArmR);
+  const lowerArmL = new THREE.Mesh(lowerArmGeo, skinMat); lowerArmL.position.set(-0.33,1.03,0.02); lowerArmL.rotation.z = 0.08; lowerArmL.castShadow = true; g.add(lowerArmL);
+  const lowerArmR = lowerArmL.clone(); lowerArmR.position.x = 0.33; lowerArmR.rotation.z = -0.08; g.add(lowerArmR);
+  const handGeo = new THREE.SphereGeometry(0.038,10,10);
+  const handL = new THREE.Mesh(handGeo, skinMat); handL.position.set(-0.34,0.86,0.04); g.add(handL);
+  const handR = handL.clone(); handR.position.x = 0.34; g.add(handR);
+
+  const thighGeo = new THREE.CapsuleGeometry(0.055,0.34,6,10);
+  const calfGeo = new THREE.CapsuleGeometry(0.048,0.30,6,10);
+  const thighL = new THREE.Mesh(thighGeo, darkMat); thighL.position.set(-0.10,0.63,0); thighL.castShadow = true; g.add(thighL);
+  const thighR = thighL.clone(); thighR.position.x = 0.10; g.add(thighR);
+  const calfL = new THREE.Mesh(calfGeo, darkMat); calfL.position.set(-0.10,0.24,0.01); calfL.castShadow = true; g.add(calfL);
+  const calfR = calfL.clone(); calfR.position.x = 0.10; g.add(calfR);
+  const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.08,0.28), shoeMat); shoeL.position.set(-0.10,-0.04,0.05); shoeL.castShadow = true; g.add(shoeL);
+  const shoeR = shoeL.clone(); shoeR.position.x = 0.10; g.add(shoeR);
+
   if (type === 'okami') {
-    const backHair = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,0.35,14), hairMat); backHair.position.set(0,1.55,-0.14); backHair.castShadow = true; g.add(backHair);
-    const kimono = new THREE.Mesh(new THREE.ConeGeometry(0.42,1.35,20), new THREE.MeshStandardMaterial({ color: 0x6c3d43, roughness: 0.95 }));
+    const kimono = new THREE.Mesh(new THREE.ConeGeometry(0.34,1.34,22), new THREE.MeshStandardMaterial({ color: 0x5f343a, roughness: 0.9 }));
     kimono.position.y = 0.58; kimono.castShadow = true; g.add(kimono);
-    const obi = new THREE.Mesh(new THREE.BoxGeometry(0.64,0.14,0.2), new THREE.MeshStandardMaterial({ color: 0x312126, roughness: 0.9 })); obi.position.set(0,0.82,0.12); g.add(obi);
+    const obi = new THREE.Mesh(new THREE.BoxGeometry(0.52,0.12,0.16), new THREE.MeshStandardMaterial({ color: 0x261b1d, roughness: 0.9 })); obi.position.set(0,0.82,0.09); g.add(obi);
+    const backHair = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.12,0.28,12), hairMat); backHair.position.set(0,1.77,-0.11); backHair.castShadow = true; g.add(backHair);
+  } else if (type === 'maid') {
+    const apron = new THREE.Mesh(new THREE.BoxGeometry(0.34,0.56,0.04), new THREE.MeshStandardMaterial({ color: 0xeceef0, roughness: 1 })); apron.position.set(0,1.06,0.14); apron.castShadow = true; g.add(apron);
+    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.24,0.56,18), new THREE.MeshStandardMaterial({ color: 0x3c3f54, roughness: 0.95 })); skirt.position.set(0,0.79,0); skirt.castShadow = true; g.add(skirt);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.05,0.16), new THREE.MeshStandardMaterial({ color: 0xf6f6f2, roughness: 1 })); cap.position.set(0,2.08,0); g.add(cap);
+  } else if (type === 'villager') {
+    const jacket = new THREE.Mesh(new THREE.BoxGeometry(0.48,0.62,0.28), new THREE.MeshStandardMaterial({ color: 0x445d39, roughness: 0.92 })); jacket.position.set(0,1.16,0.05); jacket.castShadow = true; g.add(jacket);
+    const hem = new THREE.Mesh(new THREE.CylinderGeometry(0.20,0.24,0.44,18), new THREE.MeshStandardMaterial({ color: 0x3f5733, roughness: 0.95 })); hem.position.set(0,0.78,0); hem.castShadow = true; g.add(hem);
+  } else if (type === 'guest') {
+    const jacket = new THREE.Mesh(new THREE.BoxGeometry(0.50,0.66,0.28), new THREE.MeshStandardMaterial({ color: 0x494c5d, roughness: 0.9 })); jacket.position.set(0,1.18,0.03); jacket.castShadow = true; g.add(jacket);
+  } else if (type === 'guide') {
+    const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.185,24,18), new THREE.MeshStandardMaterial({ color: 0xf0f2f5, roughness: 0.25 }));
+    helmet.position.y = 2.08; helmet.scale.y = 0.78; helmet.castShadow = true; g.add(helmet);
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,0.03,18), new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.32 })); brim.position.set(0,2.01,0); g.add(brim);
+    const vest = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.44,0.08), new THREE.MeshStandardMaterial({ color: 0x55718f, roughness: 0.95 })); vest.position.set(0,1.18,0.16); g.add(vest);
+    const poleGeo = new THREE.CylinderGeometry(0.012,0.012,0.62,10);
+    const poleL = new THREE.Mesh(poleGeo, new THREE.MeshStandardMaterial({ color: 0xcfd5db, roughness: 0.55 })); poleL.position.set(-0.42,1.06,0.02); poleL.rotation.z = 0.10; g.add(poleL);
+    const flagL = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.18,0.02), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })); flagL.position.set(-0.32,1.19,0.02); g.add(flagL);
+    const poleR = poleL.clone(); poleR.position.x = 0.42; poleR.rotation.z = -0.10; g.add(poleR);
+    const flagR = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.18,0.02), new THREE.MeshStandardMaterial({ color: 0xc23b3b, roughness: 0.95 })); flagR.position.set(0.32,1.19,0.02); g.add(flagR);
+  } else if (type === 'chef') {
+    const apron = new THREE.Mesh(new THREE.BoxGeometry(0.38,0.62,0.04), new THREE.MeshStandardMaterial({ color: 0xf6f6f2, roughness: 1 })); apron.position.set(0,1.10,0.14); apron.castShadow = true; g.add(apron);
+    const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,0.18,16), new THREE.MeshStandardMaterial({ color: 0xf7f7f4, roughness: 1 })); hat.position.set(0,2.12,0); g.add(hat);
   }
-  if (type === 'maid') {
-    const apron = new THREE.Mesh(new THREE.BoxGeometry(0.52,0.7,0.06), new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: 1 })); apron.position.set(0,0.94,0.17); apron.castShadow = true; g.add(apron);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.08,0.22), new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 1 })); cap.position.set(0,1.95,0); g.add(cap);
-  }
-  if (type === 'guide') {
-    const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.24,24,18), new THREE.MeshStandardMaterial({ color: 0xf5f6f7, roughness: 0.32 }));
-    helmet.position.y = 1.96; helmet.scale.y = 0.78; helmet.castShadow = true; g.add(helmet);
-    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.31,0.04,20), new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.4 })); brim.position.set(0,1.88,0); g.add(brim);
-    const vest = new THREE.Mesh(new THREE.BoxGeometry(0.66,0.54,0.1), new THREE.MeshStandardMaterial({ color: 0x5e7897, roughness: 0.95 })); vest.position.set(0,1.05,0.18); g.add(vest);
-    const poleGeo = new THREE.CylinderGeometry(0.015,0.015,0.8,10);
-    const flagPoleL = new THREE.Mesh(poleGeo, new THREE.MeshStandardMaterial({ color: 0xcfd5db, roughness: 0.55 })); flagPoleL.position.set(-0.54,0.9,0.02); flagPoleL.rotation.z = 0.12; g.add(flagPoleL);
-    const flagL = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.22,0.02), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })); flagL.position.set(-0.42,1.06,0.02); g.add(flagL);
-    const flagPoleR = flagPoleL.clone(); flagPoleR.position.x = 0.54; flagPoleR.rotation.z = -0.12; g.add(flagPoleR);
-    const flagR = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.22,0.02), new THREE.MeshStandardMaterial({ color: 0xc23b3b, roughness: 0.95 })); flagR.position.set(0.42,1.06,0.02); g.add(flagR);
-  }
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.42, 22), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 }));
-  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.29; g.add(shadow);
+
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.30, 24), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18 }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.08; g.add(shadow);
   return g;
 }
 
 function addNPC(id, name, faceType, costume, x, z, rot, onInteract){
   const npc = { id, name, x, z, rot: rot || 0, onInteract, faceType };
   npc.group = makeCharacter(faceType, costume);
-  npc.group.position.set(x, 0.28, z);
+  npc.group.position.set(x, 0.08, z);
   npc.group.rotation.y = rot || 0;
   dynamicGroup.add(npc.group);
   npcs.push(npc);
@@ -694,7 +770,7 @@ function buildHome(){
   scene.fog.near = 14; scene.fog.far = 34;
   createFloor(10, 8, materials.wood, -0.1);
   createCeiling(10, 8, night ? 0xd7d2cb : 0xece7dd);
-  wallSegment(0,-3.95,10,3.2,0.14,materials.wallWarm); wallSegment(0,3.95,10,3.2,0.14,materials.wallWarm); wallSegment(-4.95,0,0.14,3.2,8,materials.wallDark); wallSegment(4.95,0,0.14,3.2,8,materials.wallDark);
+  wallSegment(0,-3.95,10,4.0,0.14,materials.wallWarm); wallSegment(0,3.95,10,4.0,0.14,materials.wallWarm); wallSegment(-4.95,0,0.14,4.0,8,materials.wallDark); wallSegment(4.95,0,0.14,4.0,8,materials.wallDark);
   const desk = new THREE.Mesh(new THREE.BoxGeometry(1.8,0.82,0.8), materials.darkWood); desk.position.set(-2.0,0.41,-2.2); desk.castShadow = desk.receiveShadow = true; areaGroup.add(desk); addBoxCollider(-2.0,-2.2,1.8,0.8);
   const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.8,1.8,0.5), materials.darkWood); shelf.position.set(-4.1,0.9,2.8); shelf.castShadow = shelf.receiveShadow = true; areaGroup.add(shelf); addBoxCollider(-4.1,2.8,0.8,0.5);
   const bag = new THREE.Mesh(new THREE.BoxGeometry(0.54,0.42,0.24), new THREE.MeshStandardMaterial({ color: 0x41474f, roughness: 0.92 })); bag.position.set(-1.8,0.9,-2.05); areaGroup.add(bag);
@@ -792,8 +868,8 @@ function buildTown(){
   addBoxCollider(10.7,0,3.8,7.4);
   addBoxCollider(19.9,0,3.8,7.4);
   addBoxCollider(15.3,-2.9,9.6,1.3);
-  addBoxCollider(12.1,3.2,3.4,1.2);
-  addBoxCollider(18.5,3.2,3.4,1.2);
+  addBoxCollider(12.1,4.0,3.4,1.2);
+  addBoxCollider(18.5,4.0,3.4,1.2);
 
   const sideFenceMat = new THREE.MeshStandardMaterial({ color: 0x6e5a49, roughness: 1 });
   for (const z of [-8.4, 8.4]) {
@@ -811,15 +887,22 @@ function buildTown(){
   addLamp(2.2, 0, 0.28, 0xfff2d4);
   addLamp(10.4, 0, 0.28, 0xfff2d4);
   addLamp(15.3, 2.7, 0.48, 0xffecbf);
+  const entryStone = new THREE.Mesh(new THREE.BoxGeometry(7.2,0.12,3.6), materials.road);
+  entryStone.position.set(15.3,0.02,5.2); entryStone.receiveShadow = true; areaGroup.add(entryStone);
+  const hedgeMat = new THREE.MeshStandardMaterial({ color: 0x436447, roughness: 1 });
+  for (const hx of [11.4, 13.0, 17.6, 19.2]) {
+    const hedge = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.9,0.8), hedgeMat);
+    hedge.position.set(hx,0.45,6.7); hedge.castShadow = true; hedge.receiveShadow = true; areaGroup.add(hedge);
+  }
 
   addDoor('townToHome','自宅',-10.5,0,1.28,'home',{x:3.4,z:1.0,yaw:Math.PI/2},'x',0xc4c0b5);
   addDoor('townToLobby','旅館入口',15.3,5.0,2.05,'lobby',{x:0,z:4.8,yaw:Math.PI},undefined,0xc9b07a);
-  addNPC('villager','町の住民','villager',0x607b4d,-3.1,-1.4,Math.PI/2,npcInteract);
+  addNPC('villager','町の住民','villager',0x607b4d,-5.6,-1.6,Math.PI/2,npcInteract);
 }
 
 function buildLobby(){
-  createFloor(18, 15, materials.tatami, -0.1);
-  createCeiling(18, 15, 0xf0eadc);
+  createFloor(20, 17, materials.tatami, -0.1);
+  createCeiling(20, 17, 0xf0eadc);
   wallSegment(0, -7.45, 18, 3.2, 0.14, materials.wallWarm);
   wallSegment(0, 7.45, 18, 3.2, 0.14, materials.wallWarm);
   wallSegment(-8.95, 0, 0.14, 3.2, 15, materials.darkWood);
@@ -845,7 +928,7 @@ function buildLobby(){
 function buildKitchen(){
   createFloor(11, 9, materials.tile, -0.1);
   createCeiling(11, 9, 0xece7dd);
-  wallSegment(0,-4.45,11,3.2,0.14,materials.wallDark); wallSegment(0,4.45,11,3.2,0.14,materials.wallDark); wallSegment(-5.45,0,0.14,3.2,9,materials.wallDark); wallSegment(5.45,0,0.14,3.2,9,materials.wallDark);
+  wallSegment(0,-4.45,11,4.0,0.14,materials.wallDark); wallSegment(0,4.45,11,4.0,0.14,materials.wallDark); wallSegment(-5.45,0,0.14,4.0,9,materials.wallDark); wallSegment(5.45,0,0.14,4.0,9,materials.wallDark);
   const counter = new THREE.Mesh(new THREE.BoxGeometry(3.8,0.92,1.3), materials.darkWood); counter.position.set(0,0.46,-2.3); counter.castShadow = counter.receiveShadow = true; areaGroup.add(counter); addBoxCollider(0,-2.3,3.8,1.3);
   const stove = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.92,0.8), new THREE.MeshStandardMaterial({ color: 0x54565d, roughness: 0.5 })); stove.position.set(-3.7,0.46,2.5); areaGroup.add(stove); addBoxCollider(-3.7,2.5,1.6,0.8);
   addLamp(0,0,0.9); addLamp(3.2,-1.4,0.7);
@@ -868,9 +951,9 @@ function buildKitchen(){
 }
 
 function buildCorridor(){
-  createFloor(24, 9.6, materials.wood, -0.1);
-  createCeiling(24, 9.6, 0xe7dcc9);
-  wallSegment(0,-4.75,24,3.2,0.14,materials.darkWood); wallSegment(0,4.75,24,3.2,0.14,materials.darkWood); wallSegment(-11.95,0,0.14,3.2,9.6,materials.wallDark); wallSegment(11.95,0,0.14,3.2,9.6,materials.wallDark);
+  createFloor(26, 10.4, materials.wood, -0.1);
+  createCeiling(26, 10.4, 0xe7dcc9);
+  wallSegment(0,-5.15,26,4.0,0.14,materials.darkWood); wallSegment(0,5.15,26,4.0,0.14,materials.darkWood); wallSegment(-12.95,0,0.14,4.0,10.4,materials.wallDark); wallSegment(12.95,0,0.14,4.0,10.4,materials.wallDark);
   for(let i=-10;i<=10;i+=4){ addLamp(i,0,0.72,0xffd7a6); }
   for(let z of [-3.4,3.4]) {
     const rail = new THREE.Mesh(new THREE.BoxGeometry(23.6,0.9,0.18), materials.darkWood); rail.position.set(0,0.45,z); rail.castShadow = rail.receiveShadow = true; areaGroup.add(rail); addBoxCollider(0,z,23.6,0.18);
@@ -891,7 +974,7 @@ function buildCorridor(){
   if (state.step === 'collect_lost_item') {
     const lostKey = new THREE.Mesh(new THREE.TorusGeometry(0.14,0.03,8,20), materials.brass);
     lostKey.rotation.x = Math.PI/2; lostKey.position.y = 0.06;
-    addItem('lostKey','鍵束',3.2,1.25,lostKey,itemInteract);
+    addItem('lostKey','鍵束',4.0,1.25,lostKey,itemInteract);
   }
   addNPC('maid','仲居','maid',0x575a79,4.6,1.2,Math.PI,npcInteract);
 }
@@ -899,7 +982,7 @@ function buildCorridor(){
 function buildRoom201(){
   createFloor(9, 9, materials.tatami, -0.1);
   createCeiling(9, 9, 0xf2ece1);
-  wallSegment(0,-4.45,9,3.2,0.14,materials.wallWarm); wallSegment(0,4.45,9,3.2,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,3.2,9,materials.wallDark); wallSegment(4.45,0,0.14,3.2,9,materials.wallDark);
+  wallSegment(0,-4.45,9,4.0,0.14,materials.wallWarm); wallSegment(0,4.45,9,4.0,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,4.0,9,materials.wallDark); wallSegment(4.45,0,0.14,4.0,9,materials.wallDark);
   const alcove = new THREE.Mesh(new THREE.BoxGeometry(1.6,2.5,0.4), materials.darkWood); alcove.position.set(-3.2,1.25,-3.6); areaGroup.add(alcove); addBoxCollider(-3.2,-3.6,1.6,0.4);
   const futon = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.26,3.0), new THREE.MeshStandardMaterial({ color: 0xf1efe8, roughness: 1 })); futon.position.set(1.7,0.03,-1.2); areaGroup.add(futon); addBoxCollider(1.7,-1.2,2.2,3.0);
   const table = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.38,1.2), materials.darkWood); table.position.set(-0.2,0.19,0.8); areaGroup.add(table); addBoxCollider(-0.2,0.8,1.2,1.2);
@@ -912,7 +995,7 @@ function buildRoom201(){
 function buildRoom202(){
   createFloor(9, 9, materials.tatami, -0.1);
   createCeiling(9, 9, 0xf2ece1);
-  wallSegment(0,-4.45,9,3.2,0.14,materials.wallWarm); wallSegment(0,4.45,9,3.2,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,3.2,9,materials.wallDark); wallSegment(4.45,0,0.14,3.2,9,materials.wallDark);
+  wallSegment(0,-4.45,9,4.0,0.14,materials.wallWarm); wallSegment(0,4.45,9,4.0,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,4.0,9,materials.wallDark); wallSegment(4.45,0,0.14,4.0,9,materials.wallDark);
   const screen = new THREE.Mesh(new THREE.BoxGeometry(0.18,1.9,2.8), materials.shoji); screen.position.set(0.4,0.95,-2.2); areaGroup.add(screen); addBoxCollider(0.4,-2.2,0.18,2.8);
   const futon = new THREE.Mesh(new THREE.BoxGeometry(2.4,0.26,2.8), new THREE.MeshStandardMaterial({ color: 0xf1efe8, roughness: 1 })); futon.position.set(1.7,0.03,-0.6); areaGroup.add(futon); addBoxCollider(1.7,-0.6,2.4,2.8);
   const table = new THREE.Mesh(new THREE.BoxGeometry(1.3,0.38,1.0), materials.darkWood); table.position.set(-0.4,0.19,1.0); areaGroup.add(table); addBoxCollider(-0.4,1.0,1.3,1.0);
@@ -924,7 +1007,7 @@ function buildRoom202(){
 function buildBath(){
   createFloor(10, 8, materials.tile, -0.1);
   createCeiling(10, 8, 0xe9ecef);
-  wallSegment(0,-3.95,10,3.2,0.14,materials.wallRose); wallSegment(0,3.95,10,3.2,0.14,materials.wallRose); wallSegment(-4.95,0,0.14,3.2,8,materials.wallRose); wallSegment(4.95,0,0.14,3.2,8,materials.wallRose);
+  wallSegment(0,-3.95,10,4.0,0.14,materials.wallRose); wallSegment(0,3.95,10,4.0,0.14,materials.wallRose); wallSegment(-4.95,0,0.14,4.0,8,materials.wallRose); wallSegment(4.95,0,0.14,4.0,8,materials.wallRose);
   bathCurtain();
   const bench = new THREE.Mesh(new THREE.BoxGeometry(2.2,0.42,0.6), materials.darkWood); bench.position.set(2.2,0.21,2.8); areaGroup.add(bench); addBoxCollider(2.2,2.8,2.2,0.6);
   const shelfBody = new THREE.Mesh(new THREE.BoxGeometry(1.5,1.4,0.42), materials.darkWood); shelfBody.position.set(2.35,0.7,2.45); shelfBody.castShadow = shelfBody.receiveShadow = true; areaGroup.add(shelfBody); addBoxCollider(2.35,2.45,1.5,0.42);
@@ -941,7 +1024,7 @@ function buildBath(){
 function buildArchive(){
   createFloor(14, 12, materials.tile, -0.1);
   createCeiling(14, 12, 0xdad8d6);
-  wallSegment(0,-5.95,14,3.2,0.14,materials.wallDark); wallSegment(0,5.95,14,3.2,0.14,materials.wallDark); wallSegment(-6.95,0,0.14,3.2,12,materials.wallDark); wallSegment(6.95,0,0.14,3.2,12,materials.wallDark);
+  wallSegment(0,-5.95,14,4.0,0.14,materials.wallDark); wallSegment(0,5.95,14,4.0,0.14,materials.wallDark); wallSegment(-6.95,0,0.14,4.0,12,materials.wallDark); wallSegment(6.95,0,0.14,4.0,12,materials.wallDark);
   archiveShelves();
   addLamp(-2.6,0,0.6,0xffe0b4); addLamp(2.6,0,0.6,0xffe0b4);
   addDoor('archiveToLobby','帳場',6.25,0,1.15,'lobby',{x:-5.6,z:-2.2,yaw:0},'x',0xb7b39b);
@@ -954,7 +1037,7 @@ function buildArchive(){
 function buildNorth(){
   createFloor(11, 7, materials.carpet, -0.1);
   createCeiling(11, 7, 0xd7cab5);
-  wallSegment(0,-3.45,11,3.2,0.14,materials.wallDark); wallSegment(0,3.45,11,3.2,0.14,materials.wallDark); wallSegment(-5.45,0,0.14,3.2,7,materials.wallDark); wallSegment(5.45,0,0.14,3.2,7,materials.wallDark);
+  wallSegment(0,-3.45,11,4.0,0.14,materials.wallDark); wallSegment(0,3.45,11,4.0,0.14,materials.wallDark); wallSegment(-5.45,0,0.14,4.0,7,materials.wallDark); wallSegment(5.45,0,0.14,4.0,7,materials.wallDark);
   addLamp(-2,0,0.45,0xffc388); addLamp(2.4,0,0.45,0xffc388);
   addDoor('northToCorridor','客室廊下',-4.85,0,1.1,'corridor',{x:8.1,z:0,yaw:Math.PI},'x',0xbda67e);
   addDoor('northToDetached','離れ通路',4.85,0,1.1,'detached',{x:-3.8,z:0,yaw:0},'x',0xa89676);
@@ -967,7 +1050,7 @@ function buildDetached(){
   createFloor(16, 10, materials.wood, -0.1);
   createCeiling(16, 10, 0x1d2235);
   scene.fog.color.set(0x0c1019); scene.fog.near = 10; scene.fog.far = 28;
-  wallSegment(0,-4.95,16,3.2,0.14,materials.wallDark); wallSegment(0,4.95,16,3.2,0.14,materials.wallDark); wallSegment(-7.95,0,0.14,3.2,10,materials.wallDark); wallSegment(7.95,0,0.14,3.2,10,materials.wallDark);
+  wallSegment(0,-4.95,16,4.0,0.14,materials.wallDark); wallSegment(0,4.95,16,4.0,0.14,materials.wallDark); wallSegment(-7.95,0,0.14,4.0,10,materials.wallDark); wallSegment(7.95,0,0.14,4.0,10,materials.wallDark);
   for(let i=-5;i<=5;i+=5) addLamp(i,0,0.32,0x6e88aa);
   addDoor('detachedToNorth','北廊下',-7.25,0,1.15,'north',{x:5.2,z:0,yaw:Math.PI},'x',0xa89676);
   addDoor('detachedToArchive','宿帳庫',0,4.25,1.15,'archive',{x:0,z:-4.2,yaw:0},null,0x9689a6);
