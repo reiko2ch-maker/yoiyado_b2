@@ -1,4 +1,4 @@
-# 宵宿 B1 Smartphone Beta
+# 宵宿 B2 Mobile High Quality Beta
 
 スマホ向けの横画面ホラー体験版です。
 
