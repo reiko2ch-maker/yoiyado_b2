@@ -364,6 +364,38 @@ function makeFaceTexture(skin, eye, accent, type) {
 }
 
 
+
+// --- Photo-based reference textures (asset-based realism pass) ---
+const photoMats = {
+  ryokan: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 }),
+  corridor: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 }),
+  guestA: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 }),
+  guestB: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 }),
+  forbidden: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 }),
+  face: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0, transparent: true })
+};
+const _photoLoader = new THREE.TextureLoader();
+function loadPhotoMat(mat, url, opts={}){
+  _photoLoader.load(url, (t)=>{
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = opts.wrapS || THREE.ClampToEdgeWrapping;
+    t.wrapT = opts.wrapT || THREE.ClampToEdgeWrapping;
+    if (opts.repeat) t.repeat.set(opts.repeat[0], opts.repeat[1]);
+    if (opts.flipY === false) t.flipY = false;
+    mat.map = t;
+    mat.needsUpdate = true;
+  });
+}
+loadPhotoMat(photoMats.ryokan, 'assets/ryokan_exterior_night.jpg');
+loadPhotoMat(photoMats.corridor, 'assets/corridor_day.jpg');
+loadPhotoMat(photoMats.guestA, 'assets/guest_room_sunset.jpg');
+loadPhotoMat(photoMats.guestB, 'assets/guest_room_lux.jpg');
+loadPhotoMat(photoMats.forbidden, 'assets/forbidden_room.jpg');
+// face texture: use selfie as decal (front only)
+const faceDecalMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
+_photoLoader.load('assets/face_selfie.jpg', (t)=>{ t.colorSpace = THREE.SRGBColorSpace; faceDecalMat.map = t; faceDecalMat.needsUpdate = true; });
+loadPhotoMat(photoMats.face, 'assets/face_selfie.jpg');
+
 const materials = {
   wood: new THREE.MeshStandardMaterial({ map: makeWoodTexture(768, 768), roughness: 0.82, metalness: 0.02 }),
   darkWood: new THREE.MeshStandardMaterial({ map: makeWoodTexture(768, 768, true), roughness: 0.9, metalness: 0.02 }),
@@ -631,6 +663,11 @@ function makeCharacter(type, costume){
   const cheekR = cheekL.clone(); cheekR.position.x = 0.1; g.add(cheekR);
   const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.028,0.08,10), skinMat);
   nose.rotation.x = Math.PI/2; nose.position.set(0,1.90,0.16); g.add(nose);
+  // face decal (photo-based) - keeps the same face base across all characters
+  const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(0.30, 0.34), faceDecalMat);
+  facePlane.position.set(0, 1.91, 0.162);
+  g.add(facePlane);
+
   const lip = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.012,0.02), new THREE.MeshStandardMaterial({ color: 0x8c5f59, roughness: 1 }));
   lip.position.set(0,1.81,0.15); g.add(lip);
   const eyeGeo = new THREE.SphereGeometry(0.018, 12, 12);
@@ -863,13 +900,19 @@ function buildTown(){
   }
   const stonePath = new THREE.Mesh(new THREE.BoxGeometry(12,0.05,2.8), materials.gravel); stonePath.position.set(7.2,-0.05,0); stonePath.receiveShadow = true; areaGroup.add(stonePath);
   const gravelCourt = new THREE.Mesh(new THREE.BoxGeometry(6.2,0.04,7.2), materials.gravel); gravelCourt.position.set(14.5,-0.06,0); gravelCourt.receiveShadow = true; areaGroup.add(gravelCourt);
+
   const nameBoard = makeLabelPlane('宵宿旅館', 2.5, 0.55); nameBoard.position.set(0,2.98,4.02); inn.add(nameBoard);
-  inn.position.set(15.3,0,0); inn.traverse(m => { if (m.isMesh){ m.castShadow = true; m.receiveShadow = true; } }); areaGroup.add(inn);
-  addBoxCollider(10.7,0,3.8,7.4);
-  addBoxCollider(19.9,0,3.8,7.4);
-  addBoxCollider(15.3,-2.9,9.6,1.3);
-  addBoxCollider(12.1,4.0,3.4,1.2);
-  addBoxCollider(18.5,4.0,3.4,1.2);
+  inn.position.set(15.3,0,0); inn.rotation.y = -Math.PI/2; inn.traverse(m => { if (m.isMesh){ m.castShadow = true; m.receiveShadow = true; } }); areaGroup.add(inn);
+  // Photo backdrop to push realism (uses provided reference)
+  const ryokanBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(24, 16), photoMats.ryokan);
+  ryokanBackdrop.position.set(19.0, 7.6, 0.0);
+  ryokanBackdrop.rotation.y = -Math.PI/2; // face toward -X (player approaches from -X)
+  ryokanBackdrop.receiveShadow = true;
+  areaGroup.add(ryokanBackdrop);
+  // Colliders for rotated inn (keep a clear porch/entrance area)
+  addBoxCollider(15.3, 0.0, 9.0, 7.8);
+  // carve out the approach corridor in front of the entrance
+  addBoxCollider(15.3, 3.9, 5.2, 2.2);
 
   const sideFenceMat = new THREE.MeshStandardMaterial({ color: 0x6e5a49, roughness: 1 });
   for (const z of [-8.4, 8.4]) {
@@ -896,7 +939,7 @@ function buildTown(){
   }
 
   addDoor('townToHome','自宅',-10.5,0,1.28,'home',{x:3.4,z:1.0,yaw:Math.PI/2},'x',0xc4c0b5);
-  addDoor('townToLobby','旅館入口',15.3,5.0,2.05,'lobby',{x:0,z:4.8,yaw:Math.PI},undefined,0xc9b07a);
+  addDoor('townToLobby','旅館入口',10.8,0.0,2.05,'lobby',{x:0,z:4.8,yaw:Math.PI},undefined,0xc9b07a);
   addNPC('villager','町の住民','villager',0x607b4d,-5.6,-1.6,Math.PI/2,npcInteract);
 }
 
@@ -951,6 +994,13 @@ function buildKitchen(){
 }
 
 function buildCorridor(){
+  // Photo backdrop for realism (reference corridor)
+  const corridorBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(10.4, 4.6), photoMats.corridor);
+  corridorBackdrop.position.set(12.85, 2.3, 0.0);
+  corridorBackdrop.rotation.y = -Math.PI/2;
+  corridorBackdrop.renderOrder = -1;
+  areaGroup.add(corridorBackdrop);
+
   createFloor(26, 10.4, materials.wood, -0.1);
   createCeiling(26, 10.4, 0xe7dcc9);
   wallSegment(0,-5.15,26,4.0,0.14,materials.darkWood); wallSegment(0,5.15,26,4.0,0.14,materials.darkWood); wallSegment(-12.95,0,0.14,4.0,10.4,materials.wallDark); wallSegment(12.95,0,0.14,4.0,10.4,materials.wallDark);
@@ -980,6 +1030,11 @@ function buildCorridor(){
 }
 
 function buildRoom201(){
+  const roomBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(18, 10), photoMats.guestA);
+  roomBackdrop.position.set(0, 5.0, -7.8);
+  roomBackdrop.rotation.y = Math.PI;
+  areaGroup.add(roomBackdrop);
+
   createFloor(9, 9, materials.tatami, -0.1);
   createCeiling(9, 9, 0xf2ece1);
   wallSegment(0,-4.45,9,4.0,0.14,materials.wallWarm); wallSegment(0,4.45,9,4.0,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,4.0,9,materials.wallDark); wallSegment(4.45,0,0.14,4.0,9,materials.wallDark);
@@ -993,6 +1048,11 @@ function buildRoom201(){
 
 
 function buildRoom202(){
+  const roomBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(18, 10), photoMats.guestB);
+  roomBackdrop.position.set(0, 5.0, -7.8);
+  roomBackdrop.rotation.y = Math.PI;
+  areaGroup.add(roomBackdrop);
+
   createFloor(9, 9, materials.tatami, -0.1);
   createCeiling(9, 9, 0xf2ece1);
   wallSegment(0,-4.45,9,4.0,0.14,materials.wallWarm); wallSegment(0,4.45,9,4.0,0.14,materials.wallWarm); wallSegment(-4.45,0,0.14,4.0,9,materials.wallDark); wallSegment(4.45,0,0.14,4.0,9,materials.wallDark);
@@ -1022,6 +1082,11 @@ function buildBath(){
 }
 
 function buildArchive(){
+  const forbBackdrop = new THREE.Mesh(new THREE.PlaneGeometry(16, 9), photoMats.forbidden);
+  forbBackdrop.position.set(0, 4.8, -6.9);
+  forbBackdrop.rotation.y = Math.PI;
+  areaGroup.add(forbBackdrop);
+
   createFloor(14, 12, materials.tile, -0.1);
   createCeiling(14, 12, 0xdad8d6);
   wallSegment(0,-5.95,14,4.0,0.14,materials.wallDark); wallSegment(0,5.95,14,4.0,0.14,materials.wallDark); wallSegment(-6.95,0,0.14,4.0,12,materials.wallDark); wallSegment(6.95,0,0.14,4.0,12,materials.wallDark);
